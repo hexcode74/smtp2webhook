@@ -18,17 +18,23 @@ DEFAULTCONFIG = {
 config = configparser.ConfigParser()
 config.read(CONFIGPATH)
 
-# get webhook url
-webhook_url = config.get('DEFAULT', 'webhook_url')
-smtpd_port = config.get('DEFAULT', 'smtpd_port')
+# get webhook url and smtpd port in CONFIGPATH file, if not exists set DEFALUTCONFIG
+try:
+	webhook_url = config.get('DEFAULT', 'webhook_url')
+except configparser.NoOptionError:
+	webhook_url = DEFAULTCONFIG['webhook_url']
+
+try:
+	smtpd_port = config.get('DEFAULT', 'smtpd_port')
+except configparser.NoOptionError:
+	smtpd_port = DEFAULTCONFIG['smtpd_port']
 
 ##############################
 headers = {'content-type': 'application/json'}
-
 class SMTPServer(smtpd.SMTPServer):
 	"""smtp to webhook server"""
 	def __init__(self, *args, **kwargs):
-		print('Running smtp to webhook on port %s' % (smtpd_port))
+		print('Running smtp to webhook on port %s' % smtpd_port)
 		smtpd.SMTPServer.__init__(self, *args, **kwargs)
 
 	def process_message(self, peer, mailfrom, rcpttos, data, mail_options=None, rcpt_options=None):
@@ -66,5 +72,4 @@ if __name__ == "__main__":
 		asyncore.loop()
 	except KeyboardInterrupt:
 		smtp_server.close() 
-	except Exception as e:
-		print(e)
+
